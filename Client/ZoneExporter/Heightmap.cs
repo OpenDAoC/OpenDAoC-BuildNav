@@ -105,7 +105,7 @@ namespace CEM.Client.ZoneExporter
               {
                 vector.Z = waterHeights[waterZ];
               }
-              myVerticesFakeWater.Add(new Vector3(vector.X, vector.Y, vector.Z));
+              myVerticesFakeWater.Add(new Vector3(vector.X, vector.Y, vector.Z - 16.0f));
 
               if (y == yVectors - 1 || x == xVectors - 1) continue;
 
@@ -116,8 +116,8 @@ namespace CEM.Client.ZoneExporter
             }
           }
 
-          ObjWriter.AddMesh(myVerticesReal.ToArray(), myTriangles.ToArray()); // Mesh at the bottom.
-          //ObjWriter.AddMesh(myVerticesFakeWater.ToArray(), myTriangles.ToArray()); // Mesh at the surface of the water.
+          //ObjWriter.AddMesh(myVerticesReal.ToArray(), myTriangles.ToArray());
+          ObjWriter.AddMesh(myVerticesFakeWater.ToArray(), myTriangles.ToArray());
         }
       }
     }
