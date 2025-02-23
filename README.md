@@ -6,5 +6,5 @@ The tool generates Recast navmeshes for DAoC zones.
 
 ## Usage instructions
 
-1. Run `buildnav.exe --daoc=<gamedir> --obj=false --all=true` to build navmeshes (this will take a long time).
+1. Run `buildnav.exe --daoc=<gamedir> --all=true` to build navmeshes (this will take a long time). Alternatively, use `--zones` or `--regions`.
 2. Copy `*.nav` files into your server's `/pathing` directory.
