@@ -1,4 +1,5 @@
-﻿using CEM.World;
+﻿using CEM.Utils;
+using CEM.World;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -80,7 +81,7 @@ namespace CEM.Client {
     #endregion
 
     /// <summary>
-    /// True if the specified file exists. Works with sub-paths within a nif
+    /// True if the specified file exists and isn't empty. Works with sub-paths within a nif
     /// </summary>
     /// <param name="file"></param>
     /// <returns></returns>
@@ -124,7 +125,15 @@ namespace CEM.Client {
 
       // If this is a nif, look inside to find the file
       if (nifPath != null) {
-        TinyMPK mpk = TinyMPK.FromFile(fileSystemPath);
+        TinyMPK mpk;
+        try {
+          mpk = TinyMPK.FromFile(fileSystemPath);
+        }
+        catch {
+            // The file is probably empty.
+            return null;
+        }
+
         MPKFileEntry subfile = mpk.GetFile(nifPath);
         return subfile == null ? null : new MemoryStream(subfile.Data);
       }
