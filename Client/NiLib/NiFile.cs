@@ -12,6 +12,7 @@ using CEM.Graphic;
 using System.Drawing;
 using OpenTK;
 using CEM.Graphic.Rendering;
+using CEM.Utils;
 
 namespace MNL {
   public class NiFile {
@@ -30,10 +31,9 @@ namespace MNL {
     public NiHeader Header;
     public NiFooter Footer;
     public Dictionary<uint, NiObject> ObjectsByRef;
-    private NiAVObject root;
+    public bool Loaded = false;
 
-    private bool _loaded = false;
-
+    private NiAVObject _root;
     private Vector3 _min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
     private Vector3 _max = new Vector3(float.MinValue, float.MinValue, float.MinValue);
 
@@ -60,17 +60,26 @@ namespace MNL {
 
     private void LoadNiFile(BinaryReader reader) {
 
-      Header = new NiHeader(this, reader);
+      try
+      {
+        Header = new NiHeader(this, reader);
+      }
+      catch (Exception e)
+      {
+        Log.Error(e);
+        return;
+      }
+
       ReadNiObjects(reader);
       Footer = new NiFooter(this, reader);
       reader.Dispose();
       FixRefs();
-      root = FindRoot();
+      _root = FindRoot();
 
       //todo: maybe move this out?
 #if NAVGEN
       GenerateMeshs();
-      _loaded = true;
+      Loaded = true;
 #else
       GUI.ScheduleGLThread(() => {
         GenerateMeshs();
@@ -246,7 +255,7 @@ namespace MNL {
     }
     public void GenerateMeshs() {
       Matrix4 transform = Matrix4.Identity;
-      GenerateMesh(root, transform);
+      GenerateMesh(_root, transform);
     }
 
     private void GenerateMesh(NiAVObject node, Matrix4 transform) {
@@ -300,7 +309,7 @@ namespace MNL {
     }
 
     public void DestroyMeshs() {
-      DestroyMesh(root);
+      DestroyMesh(_root);
     }
 
     private void DestroyMesh(NiAVObject node) {
@@ -322,12 +331,12 @@ namespace MNL {
     }
 
     public void Render(Vector3 translation, Vector3 cameraPosition) {
-      if (!_loaded)
+      if (!Loaded)
         return;
 
       float distance = 0;
       NiMesh.Begin();
-      RenderNode(root, distance);
+      RenderNode(_root, distance);
     }
 
     private void RenderNode(MNL.NiAVObject node, float distance) {
@@ -375,11 +384,11 @@ namespace MNL {
     }
 
     public void RenderGroup(RenderState state, IEnumerable<Matrix4> transforms) {
-      if (!_loaded)
+      if (!Loaded)
         return;
 
       NiMesh.Begin();
-      RenderGroupNode(root, transforms);
+      RenderGroupNode(_root, transforms);
     }
 
     private void RenderGroupNode(MNL.NiAVObject node, IEnumerable<Matrix4> transforms) {

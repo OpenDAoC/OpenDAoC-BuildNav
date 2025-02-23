@@ -48,6 +48,10 @@ namespace CEM.Client.ZoneExporter
           NiFile model;
           using (var br = new BinaryReader(stream))
             model = new NiFile(br, file);
+
+          if (!model.Loaded)
+            continue;
+
           models.Add(model);
         }
       }

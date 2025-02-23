@@ -37,6 +37,10 @@ namespace CEM.Client.ZoneExporter
         {
           using (var br = new BinaryReader(ClientData.Find(Zone, fullPath)))
             model = new NiFile(br, nif);
+
+          if (!model.Loaded)
+            continue;
+
           AddModelToObj(model, worldMatrix, new[] { "collide", "collidee", "collision" }, true);
           ExtractDoor(model, worldMatrix, id);
           ExtractLadder(model, worldMatrix);

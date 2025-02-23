@@ -28,7 +28,7 @@ namespace MNL {
       var ver = reader.ReadUInt32();
       Version = (eNifVersion)ver;
       if (Version >= eNifVersion.VER_20_0_0_4) {
-        throw new Exception("NIF Version not supported yet!");
+        throw new InvalidOperationException($"{nameof(eNifVersion.VER_20_0_0_4)} not supported. (file: {file.FileName})");
       }
       if (Version >= eNifVersion.VER_10_1_0_0) {
         UserVersion = reader.ReadUInt32();
@@ -42,15 +42,15 @@ namespace MNL {
       }
 
       if (Version == eNifVersion.VER_20_0_0_5) {
-        throw new Exception("Version 20.0.0.5 not supported!");
+        throw new InvalidOperationException($"{nameof(eNifVersion.VER_20_0_0_5)} not supported.(file: {file.FileName})");
       }
 
       if (Version == eNifVersion.VER_10_0_1_2) {
-        throw new Exception("NIF Version not supported yet!");
+        throw new InvalidOperationException($"{nameof(eNifVersion.VER_10_0_1_2)} not supported. (file: {file.FileName})");
       }
-
+        
       if (Version >= eNifVersion.VER_10_1_0_0 && (UserVersion == 10 || UserVersion == 11)) {
-        throw new Exception("NIF Version not supported yet!");
+        throw new InvalidOperationException($"{nameof(eNifVersion.VER_10_1_0_0)} not supported. (file: {file.FileName})");
       }
 
       if (Version >= eNifVersion.VER_10_0_1_0) {
@@ -66,11 +66,11 @@ namespace MNL {
       }
 
       if (Version >= eNifVersion.VER_20_2_0_7) {
-        throw new Exception("NIF Version not supported yet!");
+        throw new InvalidOperationException($"{nameof(eNifVersion.VER_20_2_0_7)} not supported. (file: {file.FileName})");
       }
 
       if (Version >= eNifVersion.VER_20_1_0_3) {
-        throw new Exception("NIF Version not supported yet!");
+        throw new InvalidOperationException($"{nameof(eNifVersion.VER_20_1_0_3)} not supported. (file: {file.FileName})");
       }
 
       if (Version >= eNifVersion.VER_10_0_1_0) {

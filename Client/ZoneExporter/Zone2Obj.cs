@@ -284,8 +284,12 @@ namespace CEM.Client.ZoneExporter {
           if (stream != null) {
             using (var br = new BinaryReader(stream))
               model = new NiFile(br, nif);
+
+            if (!model.Loaded)
+              continue;
+
+            result.Add(id, model);
           }
-          result.Add(id, model);
         }
       }
 
