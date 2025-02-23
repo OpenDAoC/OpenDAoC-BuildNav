@@ -110,7 +110,7 @@ namespace CEM {
       Log.Normal("");
       Console.Title = "NavGen";
       int finishedZones = 0;
-      var po = new ParallelOptions() { MaxDegreeOfParallelism = 6 };
+      var po = new ParallelOptions() { MaxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount - 1) };
       Parallel.Invoke(po, zones.Select(z => new Action(() => {
 #if !DEBUG
         try
@@ -141,10 +141,8 @@ namespace CEM {
         IgnoreList = "ignorelist.txt";
         RecastBuildRegionID = "";
         RecastBuildZoneID = "";
-        ExportObjOnly = true;
+        ExportObjOnly = false;
         RecastBuildAll = false;
-        RecastBuildRegionID = // classic and SI
-          "1,10,20,21,22,23,24,25,50,51,60,61,62,100,101,125,126,127,128,129,150,151,160,161,180,181,190,191,200,201,220,221,222,223,224,246,248,249,250,251,252,253,269,270,271,276,277";
         NormalPriority = false;
       }
 

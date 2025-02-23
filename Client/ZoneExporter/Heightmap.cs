@@ -116,8 +116,8 @@ namespace CEM.Client.ZoneExporter
             }
           }
 
-          //ObjWriter.AddMesh(myVerticesReal.ToArray(), myTriangles.ToArray());
-          ObjWriter.AddMesh(myVerticesFakeWater.ToArray(), myTriangles.ToArray());
+          ObjWriter.AddMesh(myVerticesReal.ToArray(), myTriangles.ToArray()); // Mesh at the bottom.
+          //ObjWriter.AddMesh(myVerticesFakeWater.ToArray(), myTriangles.ToArray()); // Mesh at the surface of the water.
         }
       }
     }

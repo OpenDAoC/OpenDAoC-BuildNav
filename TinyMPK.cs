@@ -184,7 +184,7 @@ namespace CEM.Client {
           if (Crc32.Compute(compressedData) != ccrc)
             throw new IOException("File CRC mismatch at " + name);
 
-          byte[] data = Decompress(compressedData, dsize);
+          byte[] data = Decompress(compressedData);
           _entries.Add(new MPKFileEntry(name, ts, data));
 
           r.Close();
@@ -194,7 +194,7 @@ namespace CEM.Client {
 
       #endregion
 
-      Sort();
+      //Sort();
 
       // Add to cache
       lock (_rollingMPKCache) {
@@ -230,6 +230,7 @@ namespace CEM.Client {
 
     #region Helpers
 
+    // Doesn't seem to work.
     private static byte[] Decompress(byte[] src, uint dsize) {
       var res = new byte[dsize];
       var ms = new MemoryStream(src, false);

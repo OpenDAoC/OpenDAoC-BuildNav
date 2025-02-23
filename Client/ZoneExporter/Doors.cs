@@ -72,25 +72,25 @@ namespace CEM.Client.ZoneExporter
           pts.Add(new PointF(vert.X, vert.Y));
         }
 
-        MCvBox2D box = PointCollection.MinAreaRect(pts.ToArray());
+        RotatedRect box = CvInvoke.MinAreaRect(pts.ToArray());
 
-        float maxSize = box.size.Width;
-        maxSize = Math.Max(maxSize, box.size.Height);
+        float maxSize = box.Size.Width;
+        maxSize = Math.Max(maxSize, box.Size.Height);
         maxSize = Math.Max(maxSize, hullMaxZ - hullMinZ);
 
         // There are some weird door ids in e.g. Jordheim (z120): "door01:0" e.g. -- how do they translate to IDs?
         var doorID = Regex.Match(key.Replace(":", ""), "([0-9]+)").Groups[1].Value;
-        var heading = ((box.angle + (box.size.Width < box.size.Height ? 0.0 : 90.0 + 90.0)) * DEGREES_TO_HEADING) % 0x1000;
+        var heading = ((box.Angle + (box.Size.Width < box.Size.Height ? 0.0 : 90.0 + 90.0)) * DEGREES_TO_HEADING) % 0x1000;
         if (heading < 0)
         {
           heading += 0x1000;
         }
-        DoorWriter.WriteDoor(Zone.ID * 1000000 + fixtureid * 100 + int.Parse(doorID), model.FileName, (int)box.center.X, (int)box.center.Y, (int)hullMinZ, (int)heading, (int)maxSize);
+        DoorWriter.WriteDoor(Zone.ID * 1000000 + fixtureid * 100 + int.Parse(doorID), model.FileName, (int)box.Center.X, (int)box.Center.Y, (int)hullMinZ, (int)heading, (int)maxSize);
 
 
         // Make sure we have a min of 20f for doors on width/height
-        box.size.Width = Math.Max(20f, box.size.Width);
-        box.size.Height = Math.Max(20f, box.size.Height);
+        box.Size.Width = Math.Max(20f, box.Size.Width);
+        box.Size.Height = Math.Max(20f, box.Size.Height);
 
         // Make sure the door touches the ground...
         hullMinZ -= 16.0f;
