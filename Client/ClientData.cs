@@ -197,7 +197,7 @@ namespace CEM.Client {
     /// <returns></returns>
     public static IEnumerable<string> FindFiles(string dir, string pattern) {
       return Directory.GetFiles(Path.Combine(GamePath, dir), pattern, SearchOption.TopDirectoryOnly)
-          .Select(x => x.Substring(GamePath.Length + 1));
+          .Select(x => x[GamePath.Length..]);
     }
   }
 }
