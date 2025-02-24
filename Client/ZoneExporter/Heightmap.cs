@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using CEM.Utils;
+using Emgu.CV.Dnn;
 using MNL;
 using OpenTK;
 
@@ -116,8 +118,16 @@ namespace CEM.Client.ZoneExporter
             }
           }
 
-          //ObjWriter.AddMesh(myVerticesReal.ToArray(), myTriangles.ToArray());
-          ObjWriter.AddMesh(myVerticesFakeWater.ToArray(), myTriangles.ToArray());
+          try
+          {
+            //ObjWriter.AddMesh(myVerticesReal.ToArray(), myTriangles.ToArray());
+            ObjWriter.AddMesh(myVerticesFakeWater.ToArray(), myTriangles.ToArray());
+          }
+          catch (InvalidDataException)
+          {
+            Log.Error($"Invalid water map, skipping. (Zone: {Zone})");
+            continue;
+          }
         }
       }
     }

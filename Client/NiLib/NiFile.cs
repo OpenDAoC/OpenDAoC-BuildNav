@@ -64,9 +64,9 @@ namespace MNL {
       {
         Header = new NiHeader(this, reader);
       }
-      catch (Exception e)
+      catch (InvalidOperationException e)
       {
-        Log.Error(e);
+        Log.Error(e.Message);
         return;
       }
 

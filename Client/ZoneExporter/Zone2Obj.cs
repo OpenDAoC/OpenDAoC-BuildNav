@@ -459,9 +459,16 @@ namespace CEM.Client.ZoneExporter {
         if (!foundMesh)
           continue;
 
-        ObjWriter.AddMesh(vertices, triangles.ToArray());
+        try
+        {
+          ObjWriter.AddMesh(vertices, triangles.ToArray());
+        }
+        catch (InvalidDataException)
+        {
+          Log.Error($"Invalid mesh, skipping. (File: {model.FileName})");
+          continue;
+        }
       }
-
 
       var f = filter.FirstOrDefault();
       if (!foundNode && f == "pickee")

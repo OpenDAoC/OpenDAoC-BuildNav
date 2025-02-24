@@ -40,7 +40,7 @@ namespace CEM.Client {
 
     internal void AddMesh(OpenTK.Vector3[] vertices, Triangle[] indices) {
       if (vertices.SelectMany(v => new[] { v.X, v.Y, v.Z }).Any(x => float.IsNaN(x) || float.IsInfinity(x)))
-        throw new InvalidDataException();
+        throw new InvalidDataException("Invalid mesh.");
       _meshs.Add(vertices);
       _indices.Add(indices);
     }
