@@ -32,7 +32,7 @@ namespace CEM.Client.ZoneExporter {
         Directory.CreateDirectory("zones");
       string filename = Path.Combine("zones", string.Format("zone{0:D3}", zone.ID));
       DoorWriter = new DoorWriter(filename + ".doors");
-      GeomSetWriter = new GeomSetWriter(filename + ".geomset");
+      GeomSetWriter = new GeomSetWriter(filename + ".gset");
       ObjWriter = new WavefrontObjFile(filename + ".obj") {Scale = MESH_SCALE};
       GeomSetWriter.WriteLoadMesh(filename + ".obj");
       FirstPass = !NavmeshMgr.IsPathingEnabled(zone);

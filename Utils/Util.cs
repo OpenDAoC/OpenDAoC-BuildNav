@@ -172,12 +172,5 @@ namespace CEM.Utils {
     public static string Space(object a, object b) {
       return a + " " + b;
     }
-
-    /// <summary>
-    /// Properly escapes process arguments into a string
-    /// </summary>
-    public static string MakeProcessArguments(string[] strings) {
-      return strings.Select(x => String.Format("\"{0}\"", x.Replace("\"", "\\\""))).Aggregate(Space);
-    }
   }
 }

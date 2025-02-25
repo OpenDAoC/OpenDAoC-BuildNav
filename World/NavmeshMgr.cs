@@ -361,7 +361,7 @@ namespace CEM.World {
         //if (i == 0)
         {
           Log.Normal("Running buildnav.exe for {0}", z.Name);
-          Process buildnav = Process.Start("buildnav.exe", Util.MakeProcessArguments(new[] { obj.Replace(".obj", ".geomset"), nav }));
+          Process buildnav = Process.Start("buildnav.exe", [obj.Replace(".obj", ".gset"), nav]);
           buildnav.PriorityClass = ProcessPriorityClass.BelowNormal;
           buildnav.WaitForExit();
           if (buildnav.ExitCode > 0)
