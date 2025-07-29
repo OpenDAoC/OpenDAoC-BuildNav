@@ -24,7 +24,7 @@ It can also be used to inspect meshes:
 
 ## Usage instructions  
 
-1. Build and run `buildnav.exe --daoc=<gamedir>`. Use either `--all=true`, or `--zones="id1,id2..."` and/or `--regions="id1,id2..."`.
+1. Build and run `OpenDAoC-BuildNav.exe --daoc=<gamedir>`. Use either `--all=true`, or `--zones="id1,id2..."` and/or `--regions="id1,id2..."`.
 2. Copy the generated `*.nav` files from the output directory into your server's `/pathing` directory.  
 
 
