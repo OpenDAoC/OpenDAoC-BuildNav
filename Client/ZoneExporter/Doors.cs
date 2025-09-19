@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using MNL;
@@ -14,7 +11,7 @@ namespace CEM.Client.ZoneExporter
   /// </summary>
   partial class Zone2Obj
   {
-    private static readonly Regex DoorRegex = new Regex("^door([0-9])+");
+    private static readonly Regex[] DoorRegex = [new("^door([0-9])+")];
 
     private void ExtractDoor(NiFile model, Matrix4 worldMatrix, int fixtureid)
     {
@@ -32,7 +29,7 @@ namespace CEM.Client.ZoneExporter
         if (!IsMatched(avNode, new[] { "visible", "collidee", "collide" }))
           continue;
 
-        var doorName = FindMatchRegex(avNode, new[] { DoorRegex });
+        var doorName = FindMatchRegex(avNode, DoorRegex);
 
         if (doorName == string.Empty) continue;
 
