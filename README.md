@@ -5,8 +5,6 @@ A fork of the [buildnav tool](https://github.com/thekroko/uthgard-opensource/tre
 ## Prerequisites
 
 1.  **64-bit Environment:** All components must be built and run as 64-bit.
-2.  **GameServer DLL:** This project references `GameServer.dll` from the main [OpenDAoC-Core](https://github.com/OpenDAoC/OpenDAoC-Core) project to use its `LocalPathingMgr`. Copy the resulting 64-bit into this project's `base` directory.
-3.  **Detour DLL:** Build `Detour.dll` from the [OpenDAoC-Core Detour project](https://github.com/OpenDAoC/OpenDAoC-Core/tree/master/Pathing/Detour). Copy the resulting 64-bit into this project's `base` directory.
 
 ## How it works
 
@@ -30,7 +28,7 @@ It can also be used to manually inspect the generated meshes:
 ## Usage instructions
 
 1.  Build and run `OpenDAoC-BuildNav.exe --daoc=<gamedir>`. Use either `--all=true`, or `--zones="id1,id2..."` and/or `--regions="id1,id2..."`.
-2.  Copy the generated `*.nav` files from the output directory into your server's `/pathing` directory.  
+2.  Copy the generated `*.nav` files from the output directory into your server's `/navmesh` directory.  
 
 ## Output folder structure
 
