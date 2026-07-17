@@ -37,10 +37,6 @@ namespace MNL {
         for (var i = 0; i < NumInterpolators; i++)
           Interpolators[i] = new NiRef<NiInterpolator>(reader);
       }
-
-      if (Version >= eNifVersion.VER_20_0_0_4)
-        throw new Exception("Version too new!");
-
     }
   }
 }

@@ -94,7 +94,7 @@ namespace CEM.Utils {
 
     #region Constants
 
-    public static bool LOG_DEBUG = true;
+    public static bool LOG_DEBUG = false;
     public static bool LOG_ERROR = true;
     public static bool LOG_NORMAL = true;
     public static bool LOG_WARNING = true;
