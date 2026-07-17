@@ -119,9 +119,10 @@ namespace CEM.World
 
             if (sides.Count == 0)
             {
-                // Still try geometric thin axis (may fail later at snap).
+                // ThinAxis sign is arbitrary; try both faces (may still fail later at snap).
                 sides.Add(thin);
-                Log.Warn($"Ladder '{ladder.Name}': free-side probe failed both sides; trying +thinAxis");
+                sides.Add(-thin);
+                Log.Warn($"Ladder '{ladder.Name}': free-side probe failed both sides; trying +/- thinAxis");
             }
 
             return sides;
