@@ -11,9 +11,10 @@ namespace CEM.World
     {
         // Tunables (game units).
 
-        // Distance outward from the ladder's center plane to start probing for a walkable surface.
-        // Prevents snapping to the wall the ladder is attached to.
-        private const float LANDING_OFFSET = 24f;
+        // Outward distances from the ladder's center plane to probe for walkable landings.
+        // Closer offsets help recessed/alcove ladders; farther ones cover freestanding approach floors.
+        // Prefer the closest valid snap so tight front landings win over distant false positives.
+        private static readonly float[] LandingOffsets = [12f, 24f, 40f];
 
         // Distance left/right from the center column to cast secondary probes.
         // Ensures wide ladders allow AI to mount from the sides.
@@ -107,9 +108,11 @@ namespace CEM.World
 
             Numerics.Vector2 center = ToNum(ladder.CenterXY);
 
-            // Probe bottom and top to figure out which side is open.
-            bool pos = ProbeSide(query, center, thin, ladder.Bottom.Z) || ProbeSide(query, center, thin, ladder.Top.Z);
-            bool neg = ProbeSide(query, center, -thin, ladder.Bottom.Z) || ProbeSide(query, center, -thin, ladder.Top.Z);
+            // Probe several heights so intermediate recess floors still mark a side free.
+            // ThinAxis sign from export is arbitrary; treat + and - symmetrically.
+            float[] probeZs = BuildFreeSideProbeHeights(ladder);
+            bool pos = ProbeSide(query, center, thin, probeZs);
+            bool neg = ProbeSide(query, center, -thin, probeZs);
 
             List<Numerics.Vector2> sides = new();
             if (pos)
@@ -128,21 +131,35 @@ namespace CEM.World
             return sides;
         }
 
-        private static bool ProbeSide(DetourNavMeshQuery query, Numerics.Vector2 center, Numerics.Vector2 outward, float z)
+        private static float[] BuildFreeSideProbeHeights(LadderDefinition ladder)
         {
-            Numerics.Vector3 sample = new(
-                center.X + outward.X * LANDING_OFFSET,
-                center.Y + outward.Y * LANDING_OFFSET,
-                z);
+            // Extremities plus mid-height: enough to catch single-floor recess landings without
+            // running the full placement sample grid twice.
+            float mid = (ladder.MinZ + ladder.MaxZ) * 0.5f;
+            HashSet<float> heights =
+            [
+                ladder.Bottom.Z,
+                ladder.Top.Z,
+                ladder.MinZ,
+                ladder.MaxZ,
+                mid,
+            ];
+            return heights.OrderBy(z => z).ToArray();
+        }
 
-            Numerics.Vector3? hit = SnapFreeSide(
-                query,
-                sample,
-                center,
-                outward,
-                sample);
+        private static bool ProbeSide(
+            DetourNavMeshQuery query,
+            Numerics.Vector2 center,
+            Numerics.Vector2 outward,
+            float[] probeZs)
+        {
+            foreach (float z in probeZs)
+            {
+                if (TrySnapLanding(query, center, outward, tangentOffset: 0f, z).HasValue)
+                    return true;
+            }
 
-            return hit.HasValue;
+            return false;
         }
 
         private static void PlaceLadderSide(
@@ -179,12 +196,7 @@ namespace CEM.World
                 for (int c = 0; c < ColumnOffsets.Length; c++)
                 {
                     float s = ColumnOffsets[c];
-                    Numerics.Vector3 sample = new(
-                        center.X + outward.X * LANDING_OFFSET + tangent.X * s,
-                        center.Y + outward.Y * LANDING_OFFSET + tangent.Y * s,
-                        z);
-
-                    Numerics.Vector3? hit = SnapFreeSide(query, sample, center, outward, sample);
+                    Numerics.Vector3? hit = TrySnapLanding(query, center, outward, s, z, tangent);
                     if (hit.HasValue)
                     {
                         columns[c] = hit.Value;
@@ -283,6 +295,32 @@ namespace CEM.World
                 heights.Add(z);
 
             return heights.OrderBy(z => z).ToList();
+        }
+
+        private static Numerics.Vector3? TrySnapLanding(
+            DetourNavMeshQuery query,
+            Numerics.Vector2 center,
+            Numerics.Vector2 outward,
+            float tangentOffset,
+            float z,
+            Numerics.Vector2? tangent = null)
+        {
+            Numerics.Vector2 t = tangent ?? Numerics.Vector2.Zero;
+
+            // LandingOffsets is sorted nearest-first; return the first valid snap.
+            foreach (float landingOffset in LandingOffsets)
+            {
+                Numerics.Vector3 sample = new(
+                    center.X + outward.X * landingOffset + t.X * tangentOffset,
+                    center.Y + outward.Y * landingOffset + t.Y * tangentOffset,
+                    z);
+
+                Numerics.Vector3? hit = SnapFreeSide(query, sample, center, outward, sample);
+                if (hit.HasValue)
+                    return hit;
+            }
+
+            return null;
         }
 
         private static Numerics.Vector3? SnapFreeSide(
