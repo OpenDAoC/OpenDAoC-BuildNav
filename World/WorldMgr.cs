@@ -60,7 +60,7 @@ namespace CEM.World
         /// </summary>
         public static void Init()
         {
-            Log.Normal("Loading World ...");
+            Log.Normal("Loading World...");
 
             // Regions
             foreach (var reg in Region.LoadRegions())

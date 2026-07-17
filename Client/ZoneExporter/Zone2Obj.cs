@@ -1,5 +1,4 @@
-﻿using System.Buffers;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.RegularExpressions;
 using CEM.Utils;
 using CEM.World;
@@ -25,11 +24,20 @@ namespace CEM.Client.ZoneExporter
             if (!Directory.Exists("zones"))
                 Directory.CreateDirectory("zones");
             string filename = Path.Combine("zones", string.Format("zone{0:D3}", zone.ID));
+            ZoneFilePrefix = filename;
             DoorWriter = new DoorWriter(filename + ".doors");
             GeomSetWriter = new GeomSetWriter(filename + ".gset");
             ObjWriter = new WavefrontObjFile(filename + ".obj") { Scale = NavmeshMgr.CONVERSION_FACTOR };
             GeomSetWriter.WriteLoadMesh(filename + ".obj");
+            LadderDefinitions = new();
         }
+
+        private string ZoneFilePrefix { get; }
+
+        /// <summary>
+        /// Ladder instances collected during export (links placed after Recast pass 1).
+        /// </summary>
+        public List<LadderDefinition> LadderDefinitions { get; }
 
         /// <summary>
         /// Zone
@@ -63,6 +71,15 @@ namespace CEM.Client.ZoneExporter
 
             DoorWriter.Flush();
             DoorWriter.Dispose();
+
+            if (GeomSetWriter.OffMeshConnectionCount > NavmeshMgr.RecastOffMeshConnectionLimit)
+                Log.Warn($"Zone {Zone} wrote {GeomSetWriter.OffMeshConnectionCount} off-mesh connections but limit is {NavmeshMgr.RecastOffMeshConnectionLimit}.");
+            else if (GeomSetWriter.OffMeshConnectionCount > 0)
+                Log.Normal($"Zone {Zone} wrote {GeomSetWriter.OffMeshConnectionCount} off-mesh connections.");
+
+            if (LadderDefinitions.Count > 0)
+                LadderDefinitionWriter.Write($"{ZoneFilePrefix}.ladders.json", Zone.ID, LadderDefinitions);
+
             GeomSetWriter.Flush();
             GeomSetWriter.Dispose();
             ObjWriter.Save();

@@ -9,6 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableLibraryImportGenerator>true</EnableLibraryImportGenerator>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,11 +23,24 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\OpenDAoC-Core\Pathing\Detour.Managed\Detour.Managed.csproj" />
+  </ItemGroup>
+
   <Target Name="CopyBaseFolder" AfterTargets="Build">
     <ItemGroup>
       <BaseFiles Include="$(ProjectDir)base\**\*" />
     </ItemGroup>
     <Copy SourceFiles="@(BaseFiles)" DestinationFolder="$(TargetDir)base\%(RecursiveDir)" />
+  </Target>
+
+  <Target Name="CopyDetourNative" AfterTargets="Build">
+    <PropertyGroup>
+      <_DetourDll>$(ProjectDir)..\OpenDAoC-Core\Pathing\Detour\Build\Release\Detour.dll</_DetourDll>
+    </PropertyGroup>
+    <MakeDir Directories="$(TargetDir)base\lib" Condition="Exists('$(_DetourDll)')" />
+    <Copy SourceFiles="$(_DetourDll)" DestinationFiles="$(TargetDir)base\lib\Detour.dll" Condition="Exists('$(_DetourDll)')" SkipUnchangedFiles="true" />
+    <Warning Text="Detour.dll not found at $(_DetourDll). Ladder second-pass placement will fail until it is present under $(TargetDir)base\lib\Detour.dll." Condition="!Exists('$(_DetourDll)')" />
   </Target>
 
 </Project>

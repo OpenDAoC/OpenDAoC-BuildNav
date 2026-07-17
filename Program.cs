@@ -30,8 +30,6 @@ namespace CEM
         [STAThread]
         public static void Main(string[] args)
         {
-            Log.LOG_DEBUG = false;
-
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(true);
 
