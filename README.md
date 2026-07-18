@@ -5,9 +5,8 @@ A fork of the [buildnav tool](https://github.com/thekroko/uthgard-opensource/tre
 ## How it works
 
 1.  The tool reads game asset files from DAoC’s `zones` folder and writes intermediate geometry (`.obj` / `.gset`) plus ladder definitions (`.ladders.json`).
-2.  `RecastDemo.exe` builds a walkable navmesh (pass 1).
-3.  For zones that contain ladders, **Detour** loads the pass-1 mesh, snaps free-side landings (left/center/right columns, multi-floor sampling), appends off-mesh links to the `.gset`, and Recast rebuilds the final mesh (pass 2).
-4.  The final navigation meshes (`*.nav`) are used by the game server.
+2.  `RecastDemo.exe` builds a walkable navmesh.
+3.  The final navigation meshes (`*.nav`) are used by the game server.
 
 Shared Detour P/Invoke lives in `OpenDAoC-Core/Pathing/Detour.Managed` (also used by the game server’s `LocalPathfindingMgr`).
 

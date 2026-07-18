@@ -55,6 +55,8 @@ namespace CEM.Client.ZoneExporter
                 if (vertices == null || vertices.Length == 0)
                     continue;
 
+                vertices = vertices.Distinct().ToArray();
+
                 if (!TryComputeAnchors(vertices, out Vector3 bottomAnchor, out Vector3 topAnchor))
                 {
                     Log.Warn("Ladder part '{0}' in model is malformed (missing top or bottom vertices); ignoring.", climbName);
@@ -104,8 +106,6 @@ namespace CEM.Client.ZoneExporter
             float centerX = allVertices.Average(v => v.X);
             float centerY = allVertices.Average(v => v.Y);
 
-            ComputeHorizontalFrame(allVertices, out Vector2 tangent, out Vector2 thinAxis);
-
             List<float> seedHeights = new();
             foreach (LadderPart part in sortedParts)
             {
@@ -117,6 +117,8 @@ namespace CEM.Client.ZoneExporter
 
             Vector3 bottom = sortedParts.OrderBy(p => p.BottomAnchor.Z).First().BottomAnchor;
             Vector3 top = sortedParts.OrderByDescending(p => p.TopAnchor.Z).First().TopAnchor;
+
+            ComputeHorizontalFrame(allVertices, bottom, top, out Vector2 tangent, out Vector2 thinAxis);
 
             string name = $"{baseName}@({bottom.X:F0},{bottom.Y:F0},{bottom.Z:F0})";
             Log.Debug($"Collected ladder '{name}' ({sortedParts.Count} part(s), Z {minZ:F0}..{maxZ:F0}) at {bottom}");
@@ -169,61 +171,73 @@ namespace CEM.Client.ZoneExporter
             }
         }
 
-        private static void ComputeHorizontalFrame(Vector3[] vertices, out Vector2 tangent, out Vector2 thinAxis)
+        private static void ComputeHorizontalFrame(Vector3[] vertices, Vector3 bottom, Vector3 top, out Vector2 tangent, out Vector2 thinAxis)
         {
-            float minX = vertices.Min(v => v.X);
-            float maxX = vertices.Max(v => v.X);
-            float minY = vertices.Min(v => v.Y);
-            float maxY = vertices.Max(v => v.Y);
+            float deltaZ = top.Z - bottom.Z;
+            float deltaX = top.X - bottom.X;
+            float deltaY = top.Y - bottom.Y;
 
-            float extentX = maxX - minX;
-            float extentY = maxY - minY;
+            var pts = new List<PointF>();
 
-            // Approximate: longer horizontal AABB side is tangent (along wall), shorter is thin axis (into wall).
-            if (extentX >= extentY)
-            {
-                tangent = Vector2.UnitX;
-                thinAxis = Vector2.UnitY;
-            }
-            else
-            {
-                tangent = Vector2.UnitY;
-                thinAxis = Vector2.UnitX;
-            }
-
-            // Refine with covariance PCA on XY for better orientation on rotated ladders.
-            float cx = vertices.Average(v => v.X);
-            float cy = vertices.Average(v => v.Y);
-            float xx = 0, xy = 0, yy = 0;
             foreach (Vector3 v in vertices)
             {
-                float dx = v.X - cx;
-                float dy = v.Y - cy;
+                // Calculate how high this vertex is along the ladder (0.0 to 1.0+)
+                float t = Math.Abs(deltaZ) > 1e-4f ? (v.Z - bottom.Z) / deltaZ : 0f;
+
+                // "Un-lean" the vertex: shift its X and Y back to the bottom anchor's Z-plane.
+                // This completely removes any bounding-box stretch caused by the ladder leaning into or along the wall.
+                float unLeanedX = v.X - deltaX * t;
+                float unLeanedY = v.Y - deltaY * t;
+
+                pts.Add(new(unLeanedX, unLeanedY));
+            }
+
+            // Compute centroid.
+            float meanX = 0;
+            float meanY = 0;
+
+            foreach (PointF p in pts)
+            {
+                meanX += p.X;
+                meanY += p.Y;
+            }
+
+            meanX /= pts.Count;
+            meanY /= pts.Count;
+
+            // Compute covariance matrix.
+            // [ xx  xy ]
+            // [ xy  yy ]
+            float xx = 0;
+            float xy = 0;
+            float yy = 0;
+
+            foreach (PointF p in pts)
+            {
+                float dx = p.X - meanX;
+                float dy = p.Y - meanY;
+
                 xx += dx * dx;
                 xy += dx * dy;
                 yy += dy * dy;
             }
 
-            // Dominant eigenvector of [[xx,xy],[xy,yy]]
+            // Largest eigenvalue.
             float trace = xx + yy;
             float det = xx * yy - xy * xy;
-            float disc = Math.Max(0f, trace * trace * 0.25f - det);
-            float lambda1 = trace * 0.5f + MathF.Sqrt(disc);
+            float temp = MathF.Sqrt(MathF.Max(0, trace * trace * 0.25f - det));
+            float lambda = trace * 0.5f + temp;
 
-            Vector2 major;
-            if (Math.Abs(xy) > 1e-3f)
-                major = new(lambda1 - yy, xy);
+            // Corresponding eigenvector.
+            if (MathF.Abs(xy) > 1e-6f)
+                tangent = new(lambda - yy, xy);
             else if (xx >= yy)
-                major = Vector2.UnitX;
+                tangent = Vector2.UnitX;
             else
-                major = Vector2.UnitY;
+                tangent = Vector2.UnitY;
 
-            float majorLen = major.Length;
-            if (majorLen > 1e-6f)
-            {
-                tangent = major / majorLen;
-                thinAxis = new(-tangent.Y, tangent.X);
-            }
+            tangent = Vector2.Normalize(tangent);
+            thinAxis = new(-tangent.Y, tangent.X);
         }
 
         private static bool TryComputeAnchors(Vector3[] vertices, out Vector3 bottomAnchor, out Vector3 topAnchor)

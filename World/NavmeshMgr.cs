@@ -56,15 +56,29 @@ namespace CEM.World
             if (ladders.Count > 0 && File.Exists(nav))
             {
                 Log.Normal($"Placing ladder off-mesh links for zone {z} ({ladders.Count} ladder(s))...");
-                List<LadderLinkPlacer.OffMeshLink> links = LadderLinkPlacer.Place(nav, ladders);
+                LadderLinkPlacer.PlacementResult placement = LadderLinkPlacer.Place(nav, ladders);
+                List<LadderLinkPlacer.OffMeshLink> links = placement.Links;
 
                 if (links.Count > 0)
                 {
                     if (links.Count > RecastOffMeshConnectionLimit)
                     {
-                        Log.Error($"Zone {z} produced {links.Count} ladder off-mesh links but limit is {RecastOffMeshConnectionLimit}; truncating.");
-                        links = links.Take(RecastOffMeshConnectionLimit).ToList();
+                        // Keep complete 3-link hops only (entry + climb + exit).
+                        int keep = RecastOffMeshConnectionLimit - (RecastOffMeshConnectionLimit % 3);
+                        int hopsKept = keep / 3;
+                        Log.Error($"Zone {z} produced {links.Count} ladder off-mesh links but limit is {RecastOffMeshConnectionLimit}; truncating to {keep} ({hopsKept} hop(s)).");
+                        links = links.Take(keep).ToList();
+                        // Pads are 1:1 with floors; without hop→pad mapping, keep all pads (harmless extras).
                     }
+
+                    // Inject virtual horizontal pads so intermediate OMC ends land on real polys.
+                    if (placement.Pads.Count > 0 && File.Exists(obj))
+                    {
+                        LadderPadObjWriter.AppendPads(obj, placement.Pads, CONVERSION_FACTOR);
+                        LadderPadObjWriter.AppendLadderPadVolumes(gset, placement.Pads);
+                    }
+                    else if (placement.Pads.Count > 0)
+                        Log.Warn($"Zone {z}: ladder pads ready but obj missing; pass-2 may fail to chain links.");
 
                     int written = GeomSetWriter.AppendOffMeshConnections(
                         gset,
@@ -72,7 +86,7 @@ namespace CEM.World
 
                     Log.Normal($"Appended {written} ladder off-mesh connection(s) to {gset}");
 
-                    // Pass 2: rebuild navmesh with ladder links baked in.
+                    // Pass 2: rebuild navmesh with pads + ladder links baked in.
                     RunRecast(gset, nav, z.Name, pass: 2);
                 }
                 else
